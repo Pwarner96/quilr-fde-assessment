@@ -63,10 +63,6 @@ async def test_task2_auth_failure_forwards_zero_bytes() -> None:
 
 
 @pytest.mark.asyncio
-@pytest.mark.xfail(
-    strict=True,
-    reason="Task 2 duplicate JSON keys currently normalize to parse error -32700",
-)
 async def test_task2_duplicate_keys_are_invalid_request_and_forward_zero_bytes() -> (
     None
 ):
