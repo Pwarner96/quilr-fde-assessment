@@ -347,6 +347,10 @@ class StreamingGuardrailCore:
     def pending_candidate_length(self) -> int:
         return self._redactor.pending_length
 
+    @property
+    def failed(self) -> bool:
+        return self._failed
+
     def feed(self, fragment: bytes) -> list[str]:
         if self._failed or self._finished:
             return []
