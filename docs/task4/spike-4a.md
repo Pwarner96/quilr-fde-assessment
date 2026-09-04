@@ -35,4 +35,9 @@ git diff --check
 ```
 
 The demo is limiter-only. Provider adapters, routing/fallback, reconciliation, HTTP,
-and the public FastAPI completion endpoint remain explicitly gated.
+and the public FastAPI completion endpoint remain explicitly gated for Spike 4A.
+
+Core 4B and Sprint 03 add the pure router and the runnable `POST /v1/completions`
+boundary in `app.py`; the endpoint uses the same ledger and fixed logical provider
+roles, but does not expose upstream bodies, destinations, credentials, or exception
+details.

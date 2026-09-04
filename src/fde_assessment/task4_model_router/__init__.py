@@ -1,5 +1,6 @@
 """Task 4 limiter-only spike."""
 
+from .app import AppConfig, CompletionBody, HttpProvider, create_app
 from .core import (
     AttemptEvent,
     CompletionRequest,
@@ -26,10 +27,13 @@ from .limiter import (
 __all__ = [
     "AdmissionResult",
     "AdmissionStatus",
+    "AppConfig",
     "AttemptEvent",
+    "CompletionBody",
     "CompletionRequest",
     "DeterministicTokenCounter",
     "FakeClock",
+    "HttpProvider",
     "LimiterBusyError",
     "MockProvider",
     "ProviderCall",
@@ -41,5 +45,6 @@ __all__ = [
     "ReservationService",
     "RouterOutcome",
     "RouterResult",
+    "create_app",
     "new_fingerprint_secret",
 ]

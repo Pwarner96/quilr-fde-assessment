@@ -82,21 +82,30 @@ def test_reconciliation_only_lowers_complete_trustworthy_usage(tmp_path: Path) -
     reservation_id = admitted.reservation_id
     for usage in (
         None,
-        ProviderUsage(1, 1, complete=False),
-        ProviderUsage(1, 1, trustworthy=False),
-        ProviderUsage(10, 10),
-        ProviderUsage(5, 5),
+        ProviderUsage(1, 1, False, True),
+        ProviderUsage(1, 1, True, False),
+        ProviderUsage(10, 10, True, True),
+        ProviderUsage(5, 5, True, True),
     ):
         assert reservations.reconcile(reservation_id, usage) is False
         assert reservations.limiter.reservation_charge(reservation_id) == 10
-    assert reservations.reconcile(reservation_id, ProviderUsage(0, 2)) is True
+    assert (
+        reservations.reconcile(reservation_id, ProviderUsage(0, 2, True, True)) is True
+    )
     assert reservations.limiter.reservation_charge(reservation_id) == 2
     with pytest.raises(ValueError):
-        ProviderUsage(-1, 1)
+        ProviderUsage(-1, 1, True, True)
 
 
 def test_usage_contract_rejects_wrong_token_and_flag_types(tmp_path: Path) -> None:
-    for values in ((True, 1), (1.0, 1), ("1", 1), (1, True)):
+    for values in (
+        (True, 1, True, True),
+        (1.0, 1, True, True),
+        ("1", 1, True, True),
+        (1, True, True, True),
+        (1, 1, 1, True),
+        (1, 1, True, "yes"),
+    ):
         with pytest.raises(ValueError):
             ProviderUsage(*values)  # type: ignore[arg-type]
     with pytest.raises(ValueError):
@@ -119,7 +128,7 @@ async def test_primary_success_has_one_primary_call_and_no_fallback(
 ) -> None:
     reservations = service(tmp_path / "quota.sqlite")
     primary = MockProvider(
-        "primary", ProviderResult(200, {"ok": True}, ProviderUsage(1, 1))
+        "primary", ProviderResult(200, {"ok": True}, ProviderUsage(1, 1, True, True))
     )
     secondary = MockProvider("secondary", ProviderResult(200))
     result = await ProviderRouter(reservations, primary, secondary).complete(
@@ -171,7 +180,9 @@ async def test_deadline_ownership_is_strict(
     tmp_path: Path, elapsed_ms: int, wins: bool
 ) -> None:
     reservations = service(tmp_path / f"quota-{elapsed_ms}.sqlite")
-    primary = MockProvider("primary", ProviderResult(200, {}, ProviderUsage(0, 1)))
+    primary = MockProvider(
+        "primary", ProviderResult(200, {}, ProviderUsage(0, 1, True, True))
+    )
     secondary = MockProvider("secondary", ProviderResult(200))
     clock_values = iter((0, elapsed_ms))
     router = ProviderRouter(
@@ -190,7 +201,9 @@ async def test_deadline_ownership_is_strict(
 async def test_every_429_body_falls_back_once(tmp_path: Path, body: object) -> None:
     reservations = service(tmp_path / f"quota-{body!s}.sqlite")
     primary = MockProvider("primary", ProviderResult(429, body))
-    secondary = MockProvider("secondary", ProviderResult(200, {}, ProviderUsage(0, 1)))
+    secondary = MockProvider(
+        "secondary", ProviderResult(200, {}, ProviderUsage(0, 1, True, True))
+    )
     result = await ProviderRouter(reservations, primary, secondary).complete(
         "tenant", request()
     )

@@ -71,8 +71,8 @@ class ProviderRequest:
 class ProviderUsage:
     prompt_tokens: int
     completion_tokens: int
-    complete: bool = True
-    trustworthy: bool = True
+    complete: bool
+    trustworthy: bool
 
     def __post_init__(self) -> None:
         _strict_int(self.prompt_tokens, "prompt_tokens")
