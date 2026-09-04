@@ -35,7 +35,21 @@ removed and is not a repository finding.
 - Task 2 invalid-auth zero-forward probe: pass.
 - Task 3 split-token redaction, framing, and early safe-prefix probes: pass.
 - Task 4 exact 64-way, 7-token concurrent admission: 14 admitted, 50 quota rejected, zero busy/state failures, active charge 98.
-- Existing integrated suite: 170 passed before QA tests.
+- Task 1 characterization: 4/4 passed within the final full run.
+
+## Final independent verification
+
+- `make verify`: exit 0.
+- Format: 48 files already formatted.
+- Ruff: passed.
+- Mypy: passed for 18 source files.
+- Pytest: 176 passed, exit 0, elapsed 32.39 seconds.
+- Warning: one nonblocking Starlette `TestClient` `anyio.abc.BlockingPortal` deprecation.
+- Branch clean with no remotes.
+- Task 1 test-harness source fix: `b4176e72092bfe40b5a21e57cab2bd9eeaa9b335`.
+- Integrated counterpart: `af56b46d1e40f936f5a19cfbf5ea15c8dd85fa3b`.
+- QA-lane cherry-pick: `8721b921450b7c98a08a2efd4f8383aec26a523f`.
+- The Task 1 issue was a brittle five-second cold-start assumption, not a production protocol defect; the timeout is now 15 seconds with assertions unchanged.
 
 ## Evidence and limitations
 
