@@ -179,6 +179,26 @@ class RateLimiter:
             ).fetchone()
         return int(row[0])
 
+    def reconcile(self, reservation_id: int, actual_tokens: int) -> bool:
+        """Lower a reservation only after the caller has validated complete usage."""
+        if type(actual_tokens) is not int or actual_tokens < 0:
+            return False
+        with self._connect() as connection:
+            cursor = connection.execute(
+                "UPDATE reservations SET charged_tokens = ? "
+                "WHERE id = ? AND charged_tokens > ?",
+                (actual_tokens, reservation_id, actual_tokens),
+            )
+            return cursor.rowcount == 1
+
+    def reservation_charge(self, reservation_id: int) -> int | None:
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT charged_tokens FROM reservations WHERE id = ?",
+                (reservation_id,),
+            ).fetchone()
+        return None if row is None else int(row[0])
+
     def _connect(self) -> sqlite3.Connection:
         connection = sqlite3.connect(
             self.database_path, timeout=self.busy_timeout_ms / 1000
