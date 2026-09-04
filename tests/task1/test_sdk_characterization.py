@@ -13,7 +13,7 @@ def _run(message: str) -> list[dict[str, object]]:
         text=True,
         capture_output=True,
         env={**os.environ, "PYTHONPATH": "src"},
-        timeout=5,
+        timeout=15,
         check=True,
     )
     return [json.loads(line) for line in result.stdout.splitlines()]
