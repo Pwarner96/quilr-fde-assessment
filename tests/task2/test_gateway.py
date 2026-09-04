@@ -484,6 +484,33 @@ async def test_strict_invalid_requests_include_notification_batch_duplicate_and_
 
 
 @pytest.mark.asyncio
+async def test_duplicate_keys_are_invalid_requests_with_null_id_and_zero_forwarding() -> (
+    None
+):
+    _app, client, state, forwarder, lifespan = await client_for()
+    headers = {"Authorization": f"Bearer {token()}"}
+    duplicate_requests = [
+        b'{"jsonrpc":"2.0","id":1,"id":2,"method":"tools/list"}',
+        b'{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"echo","name":"admin_reset_key"}}',
+    ]
+    for raw in duplicate_requests:
+        response = await client.post("/mcp", content=raw, headers=headers)
+        assert response.status_code == 400
+        assert response.json() == {
+            "jsonrpc": "2.0",
+            "error": {"code": -32600, "message": "Invalid Request"},
+            "id": None,
+        }
+    malformed = await client.post("/mcp", content=b'{"jsonrpc":"2.0",', headers=headers)
+    assert malformed.status_code == 400
+    assert malformed.json()["error"]["code"] == -32700
+    assert forwarder.await_count == 0
+    assert state.call_count == 0
+    await client.aclose()
+    await lifespan.__aexit__(None, None, None)
+
+
+@pytest.mark.asyncio
 async def test_unexpected_exception_and_malformed_error_are_fully_sanitized() -> None:
     sentinels = [
         "INTERNAL_EXCEPTION_SENTINEL",

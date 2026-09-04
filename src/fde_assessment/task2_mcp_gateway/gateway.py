@@ -45,6 +45,10 @@ class GatewayError(Exception):
         )
 
 
+class DuplicateKeyError(ValueError):
+    """Marks valid JSON whose object member names are not unique."""
+
+
 def _error(code: int, message: str, request_id: Any = None) -> dict[str, Any]:
     return {
         "jsonrpc": "2.0",
@@ -57,7 +61,7 @@ def _no_duplicates(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
     result: dict[str, Any] = {}
     for key, value in pairs:
         if key in result:
-            raise ValueError("duplicate key")
+            raise DuplicateKeyError(key)
         result[key] = value
     return result
 
@@ -69,6 +73,8 @@ def parse_jsonrpc(raw: bytes) -> dict[str, Any]:
             object_pairs_hook=_no_duplicates,
             parse_constant=lambda _: (_ for _ in ()).throw(ValueError()),
         )
+    except DuplicateKeyError:
+        raise GatewayError(400, -32600, "Invalid Request") from None
     except (UnicodeDecodeError, json.JSONDecodeError, ValueError):
         raise GatewayError(400, -32700, "Parse error") from None
     if not isinstance(value, dict):
